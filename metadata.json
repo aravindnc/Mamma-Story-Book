@@ -1,0 +1,5 @@
+{
+  "name": "Mummy Journey Storybook Maker",
+  "description": "An application to create personalized, emotionally resonant photo book pages for a 'Mummy Journey Storybook'. Upload a photo and a prompt to generate a unique A4 page design with a heartfelt caption.",
+  "requestFramePermissions": []
+}
