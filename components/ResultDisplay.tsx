@@ -1,10 +1,14 @@
 import React, { useState, useCallback } from 'react';
 
-interface ResultDisplayProps {
+interface GeneratedPage {
   imageUrl: string;
   caption: string;
+}
+
+interface ResultDisplayProps {
+  pages: GeneratedPage[];
   photoDate: string;
-  onRegenerateCaption: () => void;
+  onRegenerateCaption: (index: number) => void;
   isRegeneratingCaption: boolean;
 }
 
@@ -33,9 +37,16 @@ const RefreshCwIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 
-export const ResultDisplay: React.FC<ResultDisplayProps> = ({ imageUrl, caption, photoDate, onRegenerateCaption, isRegeneratingCaption }) => {
+export const ResultDisplay: React.FC<ResultDisplayProps> = ({ pages, photoDate, onRegenerateCaption, isRegeneratingCaption }) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
   
+  if (!pages || pages.length === 0) {
+    return <p>Something went wrong. No pages were generated.</p>;
+  }
+  
+  const selectedPage = pages[selectedIndex];
+
   const getFileExtensionFromMimeType = (dataUrl: string): string => {
     const mimeTypeMatch = dataUrl.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/);
     if (mimeTypeMatch && mimeTypeMatch[1]) {
@@ -46,60 +57,89 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ imageUrl, caption,
   }
 
   const handleDownload = () => {
+    if (!selectedPage) return;
     const link = document.createElement('a');
-    link.href = imageUrl;
-    const fileExtension = getFileExtensionFromMimeType(imageUrl);
-    link.download = `${photoDate || 'storybook-page'}.${fileExtension}`;
+    link.href = selectedPage.imageUrl;
+    const fileExtension = getFileExtensionFromMimeType(selectedPage.imageUrl);
+    link.download = `${photoDate || 'storybook-page'}-${selectedIndex + 1}.${fileExtension}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(caption).then(() => {
+    if (!selectedPage) return;
+    navigator.clipboard.writeText(selectedPage.caption).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     });
-  }, [caption]);
+  }, [selectedPage]);
+  
+  const handleRegenerate = useCallback(() => {
+    onRegenerateCaption(selectedIndex);
+  }, [onRegenerateCaption, selectedIndex]);
 
   return (
-    <div className="w-full flex flex-col items-center gap-6 animate-fade-in">
-      <div className="w-full aspect-[210/297] bg-white p-2 rounded-lg shadow-2xl overflow-hidden">
-        <img src={imageUrl} alt="Generated photo book page" className="w-full h-full object-cover" />
+    <div className="w-100 d-flex flex-column align-items-center gap-4 animate-fade-in">
+      <div className="w-100 bg-white p-2 rounded-3 shadow-lg overflow-hidden aspect-a4">
+        <img src={selectedPage.imageUrl} alt={`Generated photo book page - style ${selectedIndex + 1}`} className="w-100 h-100" style={{objectFit: 'cover'}} />
       </div>
 
-      <div className="w-full bg-pink-100/50 p-4 rounded-lg border border-pink-200/60">
-        <p className="text-gray-700 font-lora italic text-center">"{caption}"</p>
+      <div className="w-100 bg-primary-subtle p-4 rounded-3 border border-primary-border-subtle">
+        <p className="text-dark font-lora fst-italic text-center mb-0">"{selectedPage.caption}"</p>
       </div>
 
-      <div className="w-full grid grid-cols-1 sm:grid-cols-3 items-center justify-center gap-4 mt-2">
-        <button
-          onClick={handleDownload}
-          className="w-full flex items-center justify-center gap-2 bg-pink-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-pink-700 transition-transform transform hover:scale-105"
-        >
-          <DownloadIcon />
-          Download
-        </button>
-        <button
-          onClick={handleCopy}
-          className="w-full flex items-center justify-center gap-2 bg-gray-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-gray-700 transition-transform transform hover:scale-105"
-        >
-          <CopyIcon />
-          {isCopied ? 'Copied!' : 'Copy'}
-        </button>
-        <button
-          onClick={onRegenerateCaption}
-          disabled={isRegeneratingCaption}
-          className="w-full flex items-center justify-center gap-2 bg-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-700 transition-transform transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          {isRegeneratingCaption ? (
-            <RefreshCwIcon className="animate-spin" />
-          ) : (
-            <RefreshCwIcon />
-          )}
-          New Caption
-        </button>
+      <div className="w-100 row g-2">
+        <div className="col-12 col-sm">
+          <button
+            onClick={handleDownload}
+            className="w-100 btn btn-lg btn-primary d-flex align-items-center justify-content-center gap-2"
+          >
+            <DownloadIcon />
+            Download
+          </button>
+        </div>
+        <div className="col-12 col-sm">
+          <button
+            onClick={handleCopy}
+            className="w-100 btn btn-lg btn-secondary d-flex align-items-center justify-content-center gap-2"
+          >
+            <CopyIcon />
+            {isCopied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        <div className="col-12 col-sm">
+          <button
+            onClick={handleRegenerate}
+            disabled={isRegeneratingCaption}
+            className="w-100 btn btn-lg btn-info d-flex align-items-center justify-content-center gap-2"
+          >
+            {isRegeneratingCaption ? (
+              <RefreshCwIcon className="animate-spin" />
+            ) : (
+              <RefreshCwIcon />
+            )}
+            New Caption
+          </button>
+        </div>
       </div>
+      
+      <div className="w-100 pt-4 mt-2 border-top">
+        <h4 className="text-center small fw-semibold text-muted mb-3">Choose a style</h4>
+        <div className="d-flex flex-wrap justify-content-center align-items-center gap-3">
+            {pages.map((page, index) => (
+                <button
+                    key={index}
+                    onClick={() => setSelectedIndex(index)}
+                    className={`thumbnail-button ${selectedIndex === index ? 'active' : ''}`}
+                    aria-label={`Select style ${index + 1}`}
+                >
+                    <img src={page.imageUrl} alt={`Thumbnail for style ${index + 1}`} />
+                </button>
+            ))}
+        </div>
+      </div>
+
     </div>
   );
 };

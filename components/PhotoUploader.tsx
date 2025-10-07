@@ -7,7 +7,7 @@ interface PhotoUploaderProps {
 }
 
 const UploadIcon: React.FC = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto h-12 w-12 text-gray-400">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-muted">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
         <polyline points="17 8 12 3 7 8"></polyline>
         <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -35,16 +35,16 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ onPhotoChange, pre
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="form-label fw-medium">
         Upload Photo
       </label>
       {preview ? (
         <div className="mt-1 text-center">
-          <img src={preview} alt="Preview" className="max-h-60 rounded-lg object-contain mx-auto border p-1 bg-gray-50" />
+          <img src={preview} alt="Preview" className="img-fluid rounded-3 mx-auto border p-1 bg-light" style={{maxHeight: '15rem', objectFit: 'contain'}} />
            <button
             type="button"
             onClick={handleClick}
-            className="mt-4 text-sm font-medium text-pink-600 hover:text-pink-500 bg-white rounded-md focus-within:outline-none"
+            className="btn btn-link mt-2 text-decoration-none"
            >
             Replace Photo
            </button>
@@ -52,17 +52,17 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ onPhotoChange, pre
       ) : (
         <div
           onClick={handleClick}
-          className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:border-pink-400 transition"
+          className="mt-1 d-flex justify-content-center p-5 border-2 border-dashed rounded-3 cursor-pointer"
         >
-          <div className="space-y-1 text-center">
+          <div className="text-center">
             <UploadIcon />
-            <div className="flex text-sm text-gray-600">
-              <span className="relative bg-white rounded-md font-medium text-pink-600 hover:text-pink-500 focus-within:outline-none">
+            <div className="d-flex justify-content-center small text-muted mt-2">
+              <span className="fw-medium text-primary" style={{cursor: 'pointer'}}>
                 <span>Upload a file</span>
               </span>
-              <p className="pl-1">or drag and drop</p>
+              <p className="ms-1 mb-0">or drag and drop</p>
             </div>
-            <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+            <p className="mb-0 mt-1" style={{fontSize: '0.75rem'}}><small className="text-muted">PNG, JPG, GIF up to 10MB</small></p>
           </div>
         </div>
       )}
@@ -71,7 +71,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({ onPhotoChange, pre
         id="file-upload"
         name="file-upload"
         type="file"
-        className="sr-only"
+        className="d-none"
         accept="image/*"
         onChange={handleFileChange}
       />
